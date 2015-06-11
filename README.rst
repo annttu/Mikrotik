@@ -2,7 +2,7 @@
 Mikrotik API
 ====
 
-.. image:: https://drone.io/github.com/annttu/Mikrotik-api/status.png
+.. image:: https://drone.io/github.com/annttu/Mikrotik/status.png
 
 Mikrotik-API is a python client library for Mikrotik API.
 
