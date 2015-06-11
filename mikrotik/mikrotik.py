@@ -7,6 +7,7 @@ import socket
 import struct
 from hashlib import md5
 import binascii
+import ssl
 
 
 logger = logging.getLogger("MikrotikAPI")
@@ -153,13 +154,29 @@ class MikrotikAPIRequest(object):
 
 
 class Mikrotik(object):
-    def __init__(self, address, port=8728):
+    def __init__(self, address, ssl=True, port=None, verify=True):
         self._address = address
-        self._port = port
+        self._verify = verify
+        if port:
+            self._port = port
+        if ssl:
+            self._port = 8729
+        else:
+            self._port = 8728
+        self._ssl = ssl
         self.connect()
 
     def connect(self):
         self._socket = socket.socket()
+        if self._ssl:
+            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+            context.options |= ssl.OP_NO_SSLv2
+            context.options |= ssl.OP_NO_SSLv3
+            if self._verify:
+                context.verify_mode = ssl.CERT_REQUIRED
+            else:
+                context.verify_mode = ssl.CERT_NONE
+            self._socket = context.wrap_socket(self._socket)
         self._socket.connect((self._address, self._port))
 
     def _send(self, data):

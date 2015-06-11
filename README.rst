@@ -14,7 +14,7 @@ Usage
 Example::
 
     >>> import mikrotik
-    >>> m = mikrotik.Mikrotik()
+    >>> m = mikrotik.Mikrotik("10.0.0.1")
     >>> m.login("user", "pass")
     >>> m.run("/ip/address/print")
 
