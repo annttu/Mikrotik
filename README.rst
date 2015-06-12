@@ -13,17 +13,20 @@ Usage
 
 Example::
 
-    >>> import mikrotik
-    >>> m = mikrotik.Mikrotik("10.0.0.1")
-    >>> m.login("user", "pass")
-    >>> m.run("/ip/address/print")
+.. code-block:: python
+
+    import mikrotik
+    m = mikrotik.Mikrotik("10.0.0.1")
+    m.login("user", "pass")
+    m.run("/ip/address/print")
 
 
 
 Installation
 --------
+.. code-block:: python
 
-    pip install --extra-index-url http://code.annttu.fi/ mikrotik
+    install --extra-index-url http://code.annttu.fi/ mikrotik
 
 
 License
