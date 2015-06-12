@@ -11,7 +11,7 @@ Currently library supports python >= 2.7
 Usage
 -----
 
-Example::
+Example:
 
 .. code-block:: python
 
