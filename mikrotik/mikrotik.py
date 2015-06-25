@@ -85,6 +85,7 @@ def unpack_length(length):
         return c + ord(length[4])
     raise MikrotikAPIError("Invalid message length %s!" % length)
 
+
 class MikrotikAPIResponseTypes:
     STATUS = 1
     ERROR = 2
@@ -101,6 +102,7 @@ class MikrotikApiResponse(object):
     def __str__(self):
         return "!%s %s %s" % (self.status, ' '.join(["%s=%s" % (k, v) for k, v in self.attributes.items()]),
                               ' '.join(self.error))
+
 
 class MikrotikAPIRequest(object):
     def __init__(self, command, attributes=None, api_attributes=None, queries=None):
@@ -125,7 +127,6 @@ class MikrotikAPIRequest(object):
 
     def get_request(self):
         request = []
-
 
         request.append(pack_length(len(self.command)))
         request.append(self.command.encode("utf-8"))
@@ -188,7 +189,7 @@ class Mikrotik(object):
         while True:
             responses += self._socket.recv(2048)
             logger.debug("Got %s from API" % (responses,))
-            if responses[-1] != 0:
+            if b'!done' not in responses or responses[-1] != 0:
                 # Next iteration needed
                 continue
             break
@@ -200,7 +201,7 @@ class Mikrotik(object):
 
         for response in responses.split(b'\x00')[:-1]:
             start = 0
-            response = response.decode("utf-8")
+            response = response.decode("utf-8", 'ignore')
             f = response.find("!")
             length = unpack_length(response[:f])
             response = response[f:]
