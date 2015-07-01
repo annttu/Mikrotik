@@ -76,7 +76,7 @@ def unpack_length(length):
         c <<= 8
         return c + ord(length[3])
     elif len(length) == 4 and (ord(length[0]) & 0x8F) == 0xF0:
-        c += ord(length[1])
+        c = ord(length[1])
         c <<= 8
         c += ord(length[2])
         c <<= 8
@@ -221,7 +221,7 @@ class Mikrotik(object):
             data = {}
             errors = []
             while start < len(response):
-                if (ord(response[start]) & 0x80) == 0:
+                if (ord(response[start]) & 0x80) == 0x00:
                     length = unpack_length(response[start])
                     length_length = 1
                 elif (ord(response[start]) & 0xC0) == 0x80:
@@ -242,8 +242,23 @@ class Mikrotik(object):
                     if message.startswith("=message="):
                         errors.append(message[9:])
                     else:
-                        (k, v) = message[1:].split("=",1)
+                        if '=' not in message[1:]:
+                            raise MikrotikAPIError("Got unknown response from API: %s after %s, (%s)" % (message, response[:start], data))
+                        (k, v) = message[1:].split("=", 1)
                         data.update({k: v})
+                elif message.startswith("debug-info=") or message.startswith("ht-supported-mcs="):
+                    # This is fix for Mikrotik bug which makes debug-info and ht-supported-mcs= fields don't have proper
+                    # length.
+                    first = response[start:].find("=")
+                    next = response[start+first+1:].find("=")
+                    if next > 0:
+                        length = next + first
+                    # Check, if next length is 61
+                    if response[start+length+2] == "=":
+                        length += 1
+                    logger.debug("Detected debug-info= field")
+                elif not message.startswith("!"):
+                    raise MikrotikAPIError("Unknown message '%s'" % (message,))
                 start += length
             return_values.append(MikrotikApiResponse(status=status, type=_type, error=errors, attributes=data))
         return return_values
