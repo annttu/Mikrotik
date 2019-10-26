@@ -264,6 +264,21 @@ class Mikrotik(object):
         return return_values
 
     def login(self, username, password):
+        try:
+            return self.login_post_45(username=username, password=password)
+        except MikrotikAPIError:
+            return self.login_pre_45(username=username, password=password)
+
+
+    def login_post_45(self, username, password):
+        r = MikrotikAPIRequest(command="/login", attributes={"name": username, "password": password})
+        self._send(r.get_request())
+        response = self._recv()[0]
+        if response.status == "done":
+            return
+        raise MikrotikAPIError("Cannot log in, %s!" % ' '.join(response.error))
+
+    def login_pre_45(self, username, password):
         r = MikrotikAPIRequest(command="/login")
         self._send(r.get_request())
         response = self._recv()[0]
@@ -275,7 +290,9 @@ class Mikrotik(object):
             md.update(value)
             r = MikrotikAPIRequest(command="/login", attributes={'name': username, 'response': "00" + md.hexdigest()})
             self._send(r.get_request())
-            self._recv()
+            response = self._recv()
+            if response[0].status == "trap":
+                raise MikrotikAPIError("Cannot log in, %s!" % ' '.join(response[0].error))
             return
         raise MikrotikAPIError("Cannot log in!")
 
